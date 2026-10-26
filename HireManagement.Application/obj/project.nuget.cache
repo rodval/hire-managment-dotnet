@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "wwHGSFOs2wA=",
+  "success": true,
+  "projectFilePath": "/Volumes/Mac mini Rod/Mac externo/Documents/Projects/hire-managment-api-dotnet/HireManagement/HireManagement.Application/HireManagement.Application.csproj",
+  "expectedPackageFiles": [
+    "/Volumes/Mac mini Rod/Mac externo/.nuget/packages/mediatr/12.5.0/mediatr.12.5.0.nupkg.sha512",
+    "/Volumes/Mac mini Rod/Mac externo/.nuget/packages/mediatr.contracts/2.0.1/mediatr.contracts.2.0.1.nupkg.sha512",
+    "/Volumes/Mac mini Rod/Mac externo/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/8.0.0/microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
+    "/Volumes/Mac mini Rod/Mac externo/.nuget/packages/riok.mapperly/4.3.1/riok.mapperly.4.3.1.nupkg.sha512"
+  ],
+  "logs": []
+}
