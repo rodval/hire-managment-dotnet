@@ -117,5 +117,3 @@ dotnet test
 ```
 
 Las pruebas cubren los handlers de commands y queries de cada entidad usando repositorios simulados con Moq (`HireManagement.Tests/Mocks`).
-# rodval-hire-managment-dotnet
-# rodval-hire-managment-dotnet
