@@ -16,7 +16,21 @@ namespace HireManagement.Persistence
     {
         public static IServiceCollection ConfigurePersistenceServices(this IServiceCollection services, IConfiguration configuration)
         {
-            services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+            var jwtSection = configuration.GetSection(JwtSettings.SectionName);
+            services.AddOptions<JwtSettings>()
+                .Bind(jwtSection)
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+
+            // Fail fast with a clear message instead of starting with an empty/weak signing key.
+            var jwtSettings = jwtSection.Get<JwtSettings>() ?? new JwtSettings();
+            if (string.IsNullOrWhiteSpace(jwtSettings.Key) || jwtSettings.Key.Length < 32)
+            {
+                throw new InvalidOperationException(
+                    "JwtSettings:Key is missing or shorter than 32 characters. " +
+                    "Set it with 'dotnet user-secrets set \"JwtSettings:Key\" <value>' " +
+                    "or the JwtSettings__Key environment variable.");
+            }
 
             services.AddDbContext<HireManagementDbContext>(options =>
                options.UseSqlServer(
@@ -47,10 +61,13 @@ namespace HireManagement.Persistence
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
-                        .GetBytes(configuration["JwtSettings:Key"]!))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtSettings.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = jwtSettings.Audience,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.FromMinutes(1)
                 };
             });
 

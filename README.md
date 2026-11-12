@@ -1,5 +1,7 @@
 # HireManagement API
 
+[![CI](https://github.com/rodval/hire-managment-dotnet/actions/workflows/ci.yml/badge.svg)](https://github.com/rodval/hire-managment-dotnet/actions/workflows/ci.yml)
+
 API REST para gestionar procesos de contratación: empresas publican vacantes, sus empleados las administran y los candidatos se postulan. Construida con **ASP.NET Core (.NET 10)** siguiendo **Clean Architecture** y **CQRS** con MediatR.
 
 ## Tecnologías
@@ -47,17 +49,28 @@ docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=<TuPassword>" -p 1433:1433 -
 
 ## Configuración
 
-`HireManagement.API/appsettings.json` contiene:
+`HireManagement.API/appsettings.json` **no contiene secretos**. La clave JWT va vacía a propósito y la API se niega a arrancar si no se configura una de al menos 32 caracteres.
 
-- `ConnectionStrings:HireManagementConnectionString`: cadena de conexión a SQL Server.
-- `JwtSettings:Key`: clave para firmar los tokens.
-- `JwtSettings:DurationInMinutes`: duración del token.
+| Clave | Descripción |
+| --- | --- |
+| `ConnectionStrings:HireManagementConnectionString` | Cadena de conexión a SQL Server (por defecto LocalDB). |
+| `JwtSettings:Key` | Clave HMAC-SHA256 para firmar tokens. **Obligatoria, mínimo 32 caracteres.** |
+| `JwtSettings:Issuer` / `JwtSettings:Audience` | Emisor y audiencia que se validan en cada token. |
+| `JwtSettings:DurationInMinutes` | Duración del token. |
 
-Para no guardar valores sensibles en el repositorio, sobreescríbelos con user secrets:
+En desarrollo, guarda la clave con [user secrets](https://learn.microsoft.com/aspnet/core/security/app-secrets) (se almacena fuera del repositorio):
 
 ```bash
-dotnet user-secrets --project HireManagement.API set "JwtSettings:Key" "<clave-larga-y-aleatoria>"
+dotnet user-secrets --project HireManagement.API set "JwtSettings:Key" "$(openssl rand -base64 48)"
 ```
+
+En otros entornos usa variables de entorno (`__` reemplaza a `:`):
+
+```bash
+export JwtSettings__Key="<clave-larga-y-aleatoria>"
+```
+
+Si usas SQL Server en Docker, sobreescribe también la cadena de conexión:
 
 ```bash
 dotnet user-secrets --project HireManagement.API set "ConnectionStrings:HireManagementConnectionString" "Server=localhost,1433;Database=hiremanagement_db;User Id=sa;Password=<TuPassword>;TrustServerCertificate=True"
@@ -65,25 +78,27 @@ dotnet user-secrets --project HireManagement.API set "ConnectionStrings:HireMana
 
 ## Puesta en marcha
 
-1. Restaurar herramientas locales (incluye `dotnet-ef`):
+1. Configurar la clave JWT (ver [Configuración](#configuración)).
+
+2. Restaurar herramientas locales (incluye `dotnet-ef`):
 
    ```bash
    dotnet tool restore
    ```
 
-2. Crear la base de datos y aplicar migraciones:
+3. Crear la base de datos y aplicar migraciones:
 
    ```bash
    dotnet ef database update --project HireManagement.Persistence --startup-project HireManagement.API
    ```
 
-3. Ejecutar la API:
+4. Ejecutar la API:
 
    ```bash
    dotnet run --project HireManagement.API
    ```
 
-4. Abrir Swagger en localhost.
+5. Abrir Swagger en localhost.
 
 ## Autenticación y roles
 
@@ -116,4 +131,4 @@ Todos los recursos exponen `GET` (lista), `GET /{id}`, `POST`, `PUT` y `DELETE /
 dotnet test
 ```
 
-Las pruebas cubren los handlers de commands y queries de cada entidad usando repositorios simulados con Moq (`HireManagement.Tests/Mocks`).
+Se ejecutan automáticamente en cada push y pull request mediante GitHub Actions. Las pruebas cubren los handlers de commands y queries de cada entidad usando repositorios simulados con Moq (`HireManagement.Tests/Mocks`).
